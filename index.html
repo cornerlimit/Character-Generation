@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KILI · AIGC GENERATION — UI Flow</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#1a1d23;--bg2:#23262e;--bg3:#2b2f38;--bg4:#333842;--bd:#3a3f4a;--t1:#fff;--t2:#9ca3af;--t3:#6b7280;--gold:#d4a853;--blue:#5b9cf5;--ok:#4ade80;--err:#ef4444;--warn:#f59e0b}
+body{font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:#e0e0e0;overflow:hidden;height:100vh;user-select:none}
+
+/* Screens */
+.scr{position:fixed;inset:0;display:none;flex-direction:column;z-index:10}
+.scr.show{display:flex}
+
+/* Header */
+.hdr{display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid var(--bd);flex-shrink:0;gap:14px;background:var(--bg)}
+.hdr .hback{width:34px;height:34px;border-radius:8px;border:1px solid var(--bd);background:var(--bg2);color:var(--t2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.hdr .hback:hover{background:var(--bg4);color:var(--t1)}
+.hdr h1{font-size:20px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t1)}
+.hdr .hright{margin-left:auto;display:flex;align-items:center;gap:12px}
+.hdr .hbtn{padding:8px 20px;border-radius:8px;border:1px solid var(--bd);background:var(--bg2);color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;transition:.2s;letter-spacing:.5px}
+.hdr .hbtn:hover{background:var(--bg4);color:var(--t1)}
+
+/* Footer */
+.ftr{display:flex;align-items:center;justify-content:space-between;padding:8px 32px;flex-shrink:0;background:var(--bg)}
+.ftr .fl{display:flex;align-items:center;gap:8px}
+.qbtn{display:flex;align-items:center;gap:8px;padding:11px 22px;border-radius:8px;border:1px solid var(--bd);background:var(--bg2);color:var(--t2);font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:.2s}
+.qbtn:hover{background:var(--bg4);color:var(--t1)}
+.qbtn .qc{background:var(--gold);color:var(--bg);font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;min-width:22px;text-align:center}
+.qbtn .qs{width:14px;height:14px;border:2px solid var(--t3);border-top-color:var(--gold);border-radius:50%;animation:sp 1s linear infinite;display:none}
+.qbtn.act .qs{display:block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.gbtn{padding:12px 40px;border-radius:8px;border:1px solid #444;background:linear-gradient(135deg,#3a3f47,#2d3340);color:#666;font-size:14px;font-weight:700;cursor:not-allowed;transition:.3s;letter-spacing:.5px;text-transform:uppercase}
+.gbtn.ok{background:linear-gradient(135deg,#4a5568,#374151);color:var(--t1);border-color:#555;cursor:pointer}
+.gbtn.ok:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(0,0,0,.3)}
+.uid-s{font-size:10px;color:#444}
+
+/* Sidebar */
+.side{width:200px;flex-shrink:0;background:linear-gradient(180deg,rgba(35,38,46,.6),rgba(26,29,35,.9));border-right:1px solid rgba(255,255,255,.04);padding:16px 0;display:flex;flex-direction:column;gap:2px}
+.side .si{padding:10px 16px;font-size:12px;font-weight:600;color:var(--t2);border-left:3px solid transparent;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:.2s}
+.side .si:hover{color:var(--t1);background:rgba(255,255,255,.03)}
+.side .si.act{color:var(--t1);border-left-color:var(--gold);background:rgba(212,168,83,.08)}
+
+/* Tabs */
+.tbar{display:flex;gap:12px;margin-bottom:20px;flex-shrink:0}
+.tb{padding:10px 24px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--t2);font-size:13px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:.25s}
+.tb:hover{color:var(--t1);background:var(--bg3)}
+.tb.act{background:var(--bg3);color:var(--t1);border-color:#555;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+/* Help icon */
+.hi{width:26px;height:26px;border-radius:50%;background:var(--gold);border:none;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--bg);cursor:pointer;transition:.2s;flex-shrink:0;box-shadow:0 0 0 3px rgba(212,168,83,.25)}
+.hi:hover{transform:scale(1.15)}
+
+/* Input */
+.sec-label{font-size:14px;color:var(--t2);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.pbox{position:relative}
+.pbox textarea{width:100%;min-height:180px;resize:vertical;background:var(--bg3);border:1px solid var(--bd);border-radius:12px;padding:20px 48px 20px 20px;color:var(--t1);font-size:15px;line-height:1.7;font-family:inherit;outline:none;transition:.2s}
+.pbox textarea:focus{border-color:var(--blue)}
+.pbox textarea::placeholder{color:#555c68}
+.pbox .pedit{position:absolute;right:16px;bottom:16px;width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.ubox{height:200px;border:2px dashed var(--bd);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:.25s;background:rgba(43,47,56,.4);position:relative;overflow:hidden}
+.ubox:hover{border-color:var(--blue);background:rgba(91,156,245,.06)}
+.ubox.has{border-style:solid;border-color:var(--ok)}
+.ubox .ui{font-size:48px;opacity:.4}.ubox .ut{font-size:16px;color:var(--t2);font-weight:600}.ubox .uh{font-size:12px;color:var(--t3);max-width:460px;text-align:center;line-height:1.6;padding:0 20px}
+.ubox img{max-width:100%;max-height:180px;border-radius:4px;display:none}
+.ubox .uc{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;border-radius:4px;padding:3px 7px;color:var(--err);font-size:10px;cursor:pointer;display:none}
+.ubox.has .uc{display:block}
+
+/* Modal */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:800}
+.mo.show{display:flex}
+.mc{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;max-width:540px;width:92%;padding:28px 32px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:85vh;overflow-y:auto}
+.mc .mx{position:absolute;top:14px;right:16px;width:28px;height:28px;border-radius:6px;border:1px solid var(--bd);background:var(--bg3);color:var(--t2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mc .mx:hover{color:var(--t1)}
+.mc h3{font-size:15px;font-weight:700;color:var(--t1);margin-bottom:14px}
+.mc p,.mc li{font-size:13px;color:#ccc;line-height:1.8}
+.mc .ms{font-size:13px;color:var(--gold);font-weight:700;margin:14px 0 8px}
+.mc ol,.mc ul{padding-left:20px;margin:0 0 10px}
+.mbtn{display:block;margin:16px auto 0;padding:10px 40px;border-radius:6px;background:var(--gold);border:none;color:var(--bg);font-size:14px;font-weight:700;cursor:pointer}
+.mbtn:hover{filter:brightness(1.1)}
+.mc input[type=text]{width:100%;padding:10px 14px;border-radius:6px;border:1px solid var(--bd);background:var(--bg3);color:var(--t1);font-size:13px;outline:none;font-family:inherit;margin:8px 0 4px}
+.mc input[type=text]:focus{border-color:var(--gold)}
+
+/* Toast */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);padding:14px 40px;border-radius:10px;font-size:16px;font-weight:800;z-index:900;opacity:0;transition:.3s;pointer-events:none;letter-spacing:1px;text-transform:uppercase;border:2px solid;background:linear-gradient(135deg,#0d4f5c,#1a7a8a);color:var(--t1);border-color:#2dd4d8;box-shadow:0 8px 40px rgba(45,212,216,.3)}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* Loading */
+#ldScr{z-index:500;background:var(--bg);align-items:center;justify-content:center}
+#ldScr .ldi{font-size:48px;margin-bottom:20px;opacity:.6}
+#ldScr .ldt{font-size:14px;color:var(--t1);font-weight:600;margin-bottom:12px;text-align:center}
+#ldScr .ldw{width:400px;max-width:80vw}
+#ldScr .ldbg{width:100%;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+#ldScr .ldb{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--gold));border-radius:4px;transition:width .3s}
+#ldScr .ldp{text-align:center;font-size:12px;color:var(--t3);margin-top:6px}
+#ldScr .ldbg-btn{margin-top:24px;padding:10px 36px;border-radius:6px;background:var(--gold);border:none;color:var(--bg);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.5px;text-transform:uppercase}
+
+/* Queue */
+#qScr{z-index:400;background:linear-gradient(135deg,#2c3340,#1e2329)}
+.qe{flex:1;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--t3);font-style:italic}
+.ql{flex:1;overflow-y:auto;padding:16px 24px}
+.qi{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+.qi .qii{width:44px;height:44px;border-radius:8px;background:var(--bg3);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.qi .qin{flex:1;min-width:0}
+.qi .qit{font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.qi .qid{font-size:12px;color:var(--t1);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qi .qida{font-size:10px;color:#555;margin-top:2px}
+.qi .qip{width:170px;flex-shrink:0;text-align:right}
+.qi .qipb{width:100%;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:4px}
+.qi .qipf{height:100%;background:linear-gradient(90deg,#fff,var(--gold));border-radius:3px;transition:width .3s}
+.qi .qipl{font-size:11px;color:var(--t3)}
+.qi .qia{display:flex;gap:8px;flex-shrink:0}
+.qi .qia button{padding:8px 20px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:.2s;letter-spacing:.5px;text-transform:uppercase}
+.qdel{background:none;border:1px solid var(--bd);color:var(--t2)}
+.qdel:hover{border-color:var(--err);color:var(--err)}
+.qprev{background:none;border:1px solid var(--gold);color:var(--gold)}
+.qprev:hover{background:var(--gold);color:var(--bg)}
+
+/* Preview */
+#pvScr{z-index:450;background:#2a2e36}
+.pvv{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 48px}
+.pvvp{width:min(960px,88vw);aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:linear-gradient(180deg,#4eb8e8,#89ddf5,#c5f3fc);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 4px 30px rgba(0,0,0,.3)}
+.pvch{width:80px;height:180px;background:linear-gradient(180deg,#7ec850,#3a8a2e,#2a6b22);border-radius:40px 40px 20px 20px;position:relative}
+.pvch::before{content:'';position:absolute;top:-38px;left:50%;transform:translateX(-50%);width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ffe4c4,#f0c8a0)}
+.pvch::after{content:'';position:absolute;top:20px;left:-18px;width:136px;height:18px;border-radius:9px;background:linear-gradient(90deg,#5cb840,#3a8a2e)}
+
+/* Library */
+#libScr{z-index:460;background:linear-gradient(135deg,#2c3340,#1e2329)}
+.lb{flex:1;display:flex;overflow:hidden;position:relative}
+.ll{width:200px;flex-shrink:0;padding:16px 0;display:flex;flex-direction:column;gap:2px;border-right:1px solid rgba(255,255,255,.04)}
+.lf{padding:8px 14px;font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;border-left:3px solid transparent;transition:.2s;text-transform:uppercase;letter-spacing:.5px}
+.lf:hover{background:rgba(255,255,255,.03)}
+.lf.act{color:var(--t1);border-left-color:var(--gold);background:rgba(212,168,83,.06)}
+.lc{width:80px;flex-shrink:0;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:6px;border-right:1px solid rgba(255,255,255,.04)}
+.lci{width:60px;height:56px;border-radius:8px;background:var(--bg3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:9px;color:var(--t2);font-weight:600;text-transform:uppercase;transition:.2s;border:1px solid transparent}
+.lci:hover{background:rgba(255,255,255,.08)}
+.lci.act{background:rgba(255,255,255,.1);border-color:var(--gold);color:var(--t1)}
+.lci .li{font-size:18px}
+.lg{flex:1;padding:16px;overflow-y:auto}
+.lgi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.lcd{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;overflow:hidden;cursor:pointer;transition:.2s;position:relative}
+.lcd:hover{border-color:var(--gold);transform:translateY(-2px)}
+.lcd .lt{height:120px;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;position:relative}
+.lcd .lt svg{width:40px;height:70px;opacity:.25}
+.lcd .ln{padding:8px 10px;font-size:11px;font-weight:600;color:var(--t1);text-align:center;background:rgba(255,255,255,.04);border-top:1px solid var(--bd)}
+/* Purchase card extras */
+.lcd .lstore{position:absolute;top:6px;right:6px;width:24px;height:24px;background:var(--bg3);border:1px solid var(--bd);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.lcd .likes{position:absolute;bottom:6px;left:6px;display:flex;align-items:center;gap:4px;font-size:11px;color:var(--blue);font-weight:600}
+.llim{position:absolute;top:56px;right:20px;font-size:11px;color:var(--t3);text-align:right;line-height:1.8;font-weight:600}
+.llim b{color:var(--gold)}
+.lsw{position:absolute;bottom:12px;left:16px;padding:10px 22px;border-radius:8px;border:1px solid var(--bd);background:var(--bg2);font-size:12px;color:var(--t2);cursor:pointer;font-weight:700;letter-spacing:.5px;text-transform:uppercase;transition:.2s}
+.lsw:hover{background:var(--bg4);color:var(--t1)}
+.lsw .arr{margin-left:6px;font-size:14px}
+
+/* Detail panel (fullscreen overlay) */
+.dtl{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:700;display:none;flex-direction:column}
+.dtl.show{display:flex}
+.dtl-inner{flex:1;display:flex;flex-direction:column;max-width:1100px;width:95%;margin:0 auto;padding-top:20px}
+.dtl-hdr{display:flex;align-items:center;padding:10px 0 16px;border-bottom:1px solid var(--bd)}
+.dtl-hdr h2{font-size:18px;font-weight:700;color:var(--t1)}
+.dtl-hdr .dtlx{margin-left:auto;width:32px;height:32px;border-radius:6px;border:1px solid var(--bd);background:var(--bg3);color:var(--t2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dtl-hdr .dtlx:hover{color:var(--t1)}
+.dtl-body{flex:1;display:flex;gap:32px;padding:24px 0;overflow-y:auto}
+.dtl-thumb{width:300px;flex-shrink:0;background:var(--bg3);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:10px}
+.dtl-thumb svg{width:80px;height:140px;opacity:.4}
+.dtl-info{flex:1;display:flex;flex-direction:column;gap:12px}
+.dtl-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.dtl-row .dlbl{color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:600;font-size:12px}
+.dtl-row .dval{color:var(--t1);font-weight:500;display:flex;align-items:center;gap:6px}
+.dtl-row input{background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;color:var(--t1);font-size:13px;outline:none;width:200px;font-family:inherit}
+.dtl-row input:focus{border-color:var(--gold)}
+/* Toggle switch */
+.tog{display:flex;border-radius:6px;overflow:hidden;border:1px solid var(--bd)}
+.tog span{padding:6px 16px;font-size:11px;font-weight:700;cursor:pointer;transition:.2s;color:var(--t3);background:var(--bg3)}
+.tog span.on{background:var(--bg4);color:var(--t1)}
+.dtl-ftr{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--bd);flex-shrink:0}
+.dtl-ftr .dfbtn{padding:10px 24px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;letter-spacing:.5px;text-transform:uppercase;border:1px solid var(--bd)}
+.dtl-ftr .dfdel{background:none;color:var(--t2)}
+.dtl-ftr .dfdel:hover{color:var(--err);border-color:var(--err)}
+.dtl-ftr .dfpub{background:var(--gold);color:var(--bg);border-color:var(--gold);padding:12px 48px;font-size:14px}
+.dtl-ftr .dfpub:hover{filter:brightness(1.1)}
+.dtl-ftr .dfrem{background:var(--gold);color:var(--bg);border-color:var(--gold);padding:12px 48px;font-size:14px;margin-left:auto}
+
+/* Like bar */
+.lkbar{display:flex;align-items:center;gap:12px;margin-top:8px}
+.lkbar .lkn{font-size:14px;color:var(--blue);font-weight:700;display:flex;align-items:center;gap:4px}
+.lkbar .lkp{font-size:11px;color:var(--t3)}
+.lkbtns{display:flex;gap:8px;margin-top:6px}
+.lkbtns button{padding:6px 14px;border-radius:6px;border:1px solid var(--bd);background:var(--bg3);color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px}
+.lkbtns button:hover{background:var(--bg4);color:var(--t1)}
+
+/* QR Modal */
+.qrmo{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:850;display:none;align-items:center;justify-content:center}
+.qrmo.show{display:flex}
+.qrbox{text-align:center}
+.qrbox .qrimg{width:240px;height:240px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;position:relative}
+/* Simulated QR code pattern */
+.qrbox .qrimg::before{content:'';width:200px;height:200px;background:repeating-conic-gradient(#000 0% 25%, #fff 0% 50%) 0 0 / 20px 20px;opacity:.8}
+.qrbox .qrtxt{font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:1px}
+.qrbox .qrx{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:6px;background:var(--bg3);border:1px solid var(--bd);color:var(--t2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* QR corners */
+.qrbox .qrimg::after{content:'';position:absolute;inset:8px;border:3px solid rgba(255,255,255,.3);border-radius:8px}
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Disclaimer -->
+<div class="mo show" id="dmo"><div class="mc"><button class="mx" onclick="cl('dmo')">&times;</button><h3>创作者须知</h3><p>欢迎使用角色生成功能，请仔细阅读以下内容并确认同意：</p><ol><li>请遵守中华人民共和国法律条款，不要上传违法内容</li><li>腾讯公司不会收集您使用本服务所提供及产生的信息作为训练数据使用</li></ol><button class="mbtn" onclick="cl('dmo')">我已了解并同意</button></div></div>
+
+<!-- Help modals -->
+<div class="mo" id="htxt"><div class="mc"><button class="mx" onclick="cl('htxt')">&times;</button><h3>🎮 角色生成说明</h3><div class="ms">📖 功能说明</div><ol><li>本功能用于生成游戏中可用的玩家模型</li><li>输入角色描述，我们会生成对应模型</li><li>生成中可继续游玩，无需停留</li><li>生成后可用于角色UGC编辑</li></ol><div class="ms">【生成限制】</div><ul><li>仅支持四肢健全的标准人形模型</li><li>非人型将中止生成</li><li>队列上限5个</li></ul></div></div>
+<div class="mo" id="himg"><div class="mc"><button class="mx" onclick="cl('himg')">&times;</button><h3>🎮 角色生成说明</h3><div class="ms">📖 功能说明</div><ol><li>本功能用于生成游戏中可用的玩家模型</li><li>上传角色图像，我们会识别并转化为游戏模型</li><li>生成中可继续游玩，无需停留</li><li>生成后可用于角色UGC编辑</li></ol><div class="ms">【生成限制】</div><ul><li>目前仅支持生成四肢健全的标准人形角色</li><li>图片背景简单（尽量纯色）</li><li>图片不包含文字</li><li>单主体人物，正面，全身</li><li>避免主体在图片中过小</li></ul></div></div>
+
+<!-- Save modal -->
+<div class="mo" id="smo"><div class="mc" style="text-align:center"><button class="mx" onclick="cl('smo')">&times;</button><h3 style="font-size:24px;letter-spacing:3px">SAVE</h3><input type="text" id="sn" placeholder="ENTER CHARACTER NAME" style="text-align:center"/><button class="mbtn" onclick="doSave()">CONFIRM</button></div></div>
+
+<!-- QR modal -->
+<div class="qrmo" id="qrmo" onclick="cl('qrmo')"><button class="qrx" style="position:fixed;top:16px;right:16px;width:32px;height:32px;border-radius:6px;background:var(--bg3);border:1px solid var(--bd);color:var(--t2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10" onclick="cl('qrmo')">&times;</button><div class="qrbox"><div class="qrimg"></div><div class="qrtxt">POINT THE VIEWFINDER AT THE QR CODE TO SCAN</div></div></div>
+
+<!-- Loading -->
+<div class="scr" id="ldScr"><div class="ldi">🤖</div><div class="ldt" id="ldt">正在生成模型...</div><div class="ldw"><div class="ldbg"><div class="ldb" id="ldb"></div></div><div class="ldp" id="ldp">0%</div></div><button class="ldbg-btn" onclick="goBg()">BACKGROUND</button></div>
+
+<!-- Queue -->
+<div class="scr" id="qScr"><div class="hdr"><button class="hback" onclick="cl('qScr')">◀</button><h1>GENERATION QUEUE</h1><div class="hright"><span id="qc2" style="font-size:13px;color:var(--gold);font-weight:700">0/5</span></div></div><div id="qlw"></div></div>
+
+<!-- Preview -->
+<div class="scr" id="pvScr"><div class="hdr"><button class="hback" onclick="cl('pvScr')">◀</button><h1>GENERATE PREVIEW</h1></div><div class="pvv"><div class="pvvp"><div class="pvch"></div></div></div><div class="ftr"><span class="uid-s">UID:1231231</span><button class="gbtn ok" onclick="openSM()">ADD TO LIBRARY</button></div></div>
+
+<!-- Detail panel -->
+<div class="dtl" id="dtlP"></div>
+
+<!-- Library -->
+<div class="scr" id="libScr">
+  <div class="hdr"><button class="hback" onclick="cl('libScr')">◀</button><h1 id="ltt">MY CREATION</h1><div class="hright"><span class="hbtn" onclick="toast('Search')">🔍</span></div></div>
+  <div class="lb">
+    <div class="ll"><div class="lf act">AIGC (AI Gen Content)</div><div class="lf">GROUP</div></div>
+    <div class="lc" id="lcats"></div>
+    <div class="lg"><div class="lgi" id="lgr"></div></div>
+    <div class="llim" id="llim"></div>
+    <div class="lsw" id="lsw" onclick="togLib()">🔄 MY PURCHASE <span class="arr">›</span></div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="scr show" id="mainScr" style="background:var(--bg)">
+  <div class="hdr"><button class="hback" onclick="toast('返回主菜单')">◀</button><h1 id="mtt">CHARACTER GENERATION</h1><div class="hright"><span class="hbtn" onclick="openLib()">📚 LIBRARY</span></div></div>
+  <div style="display:flex;flex:1;overflow:hidden">
+    <div class="side"><div class="si act" onclick="swMod('char',this)">✦ CHARACTER GENERATION</div><div class="si" onclick="swMod('motion',this)">🎬 Motion Generation</div></div>
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)">
+      <div id="cMod" style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:20px 32px 0">
+        <div class="tbar"><button class="tb act" data-t="text" onclick="swTab(this)">TEXT-BASED GEN</button><button class="tb" data-t="image" onclick="swTab(this)">IMAGE-BASED GEN</button></div>
+        <div style="flex:1;overflow-y:auto;min-height:0">
+          <div id="vt" style="display:flex;flex-direction:column;gap:10px">
+            <div class="sec-label">ENTER A PROMPT <span class="hi" onclick="op('htxt')">?</span></div>
+            <div class="pbox"><textarea id="pt" placeholder="请输入想要生成的内容。建议以单主体为主。&#10;&#10;例如：一个战士英雄，手持战锤，蒸汽朋克风。" oninput="ck()"></textarea><button class="pedit">✏️</button></div>
+          </div>
+          <div id="vi" style="display:none;flex-direction:column;gap:10px">
+            <div class="sec-label">UPLOAD A IMAGE <span class="hi" onclick="op('himg')">?</span></div>
+            <div class="ubox" id="ub" onclick="$('fi').click()"><div class="ui" id="uii">🖼️</div><div class="ut" id="utt">点击上传角色图片</div><div class="uh" id="uhh">仅限人物角色，支持png/jpg/jpeg，文件大小最大不超过10M，分辨率最低要求128*128，最高限制4096*4096</div><img id="uim"/><button class="uc" onclick="clImg(event)">✕</button><input type="file" id="fi" accept="image/*" style="display:none" onchange="doUp(event)"/></div>
+          </div>
+        </div>
+      </div>
+      <iframe id="mMod" src="motion-generation-ui.html" style="flex:1;border:none;display:none;width:100%;height:100%"></iframe>
+      <!-- Character Footer (inside content area, same level as charModule/iframe) -->
+      <div class="ftr" id="cFtr"><div class="fl"><button class="qbtn" id="qb" onclick="op('qScr');rQ()"><div class="qs"></div>🔄 GENERATION QUEUE<span class="qc" id="qcn">0</span></button><span class="uid-s">UID:1231231</span></div><button class="gbtn" id="gb" onclick="startGen()">▶ 开始生成</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function op(id){$(id).classList.add('show')}
+function cl(id){$(id).classList.remove('show')}
+function toast(m){const t=$('toast');t.textContent=m;t.className='toast show';clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)}
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+
+// ═══ DATA ═══
+let Q=[],nid=1,tab='text',curMod='char',libMode='creation';
+const STEPS=[{l:'正在生成模型'},{l:'重新拓扑模型'},{l:'调整模型UV'},{l:'添加材质'},{l:'自动生成骨骼'},{l:'蒙皮'},{l:'正在上传资源'}];
+const DUR=14000;
+let creations=[]; // {name,type:'CHARACTER',published:false,time,auth:false,share:false}
+let purchases=[
+  {name:'Knight_724y',type:'CHARACTER',likes:1,pct:100,creator:'侬四肖凯住了',time:'Jul 24, 2025, 11:16:42 AM',cid:'6881a49bddac324caaffb942-20250724031227',ver:'1.0'},
+  {name:'Mage_战舞',type:'CHARACTER',likes:1,pct:100,creator:'玩家A',time:'Mar 10, 2026, 9:30:00 AM',cid:'abc123def456',ver:'1.0'},
+  {name:'Archer_风行',type:'CHARACTER',likes:3,pct:75,creator:'创作者B',time:'Jan 5, 2026, 2:15:00 PM',cid:'xyz789ghi012',ver:'1.2'},
+];
+let published=0;
+
+// ═══ MODULE SWITCH ═══
+function swMod(m,b){curMod=m;document.querySelectorAll('.side .si').forEach(s=>s.classList.remove('act'));b.classList.add('act');$('cMod').style.display=m==='char'?'flex':'none';$('mMod').style.display=m==='motion'?'block':'none';$('mtt').textContent=m==='char'?'CHARACTER GENERATION':'MOTION GENERATION';$('cFtr').style.display=m==='char'?'flex':'none'}
+
+// ═══ TABS ═══
+function swTab(e){document.querySelectorAll('.tb').forEach(t=>t.classList.remove('act'));e.classList.add('act');tab=e.dataset.t;$('vt').style.display=tab==='text'?'flex':'none';$('vi').style.display=tab==='image'?'flex':'none';ck()}
+function ck(){const b=$('gb');let ok=tab==='text'?$('pt').value.trim().length>0:$('ub').classList.contains('has');ok?b.classList.add('ok'):b.classList.remove('ok')}
+
+// ═══ UPLOAD ═══
+function doUp(e){e.stopPropagation();const f=e.target.files[0];if(!f)return;if(f.size>10e6){toast('文件超过10MB');return}const r=new FileReader();r.onload=v=>{$('uim').src=v.target.result;$('uim').style.display='block';$('ub').classList.add('has');$('uii').style.display='none';$('utt').style.display='none';$('uhh').style.display='none';ck()};r.readAsDataURL(f)}
+function clImg(e){e.stopPropagation();$('uim').style.display='none';$('ub').classList.remove('has');$('uii').style.display='';$('utt').style.display='';$('uhh').style.display='';$('fi').value='';ck()}
+
+// ═══ GENERATION ═══
+function startGen(){if(Q.filter(q=>q.s==='gen').length>=5){toast('队列已满(5/5)');return}
+  let nm=tab==='text'?$('pt').value.trim().substring(0,30):'uploaded_image.png';
+  const it={id:nid++,nm,s:'gen',p:0,si:0,bg:false,ts:new Date().toLocaleString()};Q.push(it);uBdg();
+  $('ldb').style.width='0%';$('ldp').textContent='0%';$('ldt').textContent=STEPS[0].l+'...';op('ldScr');$('ldScr').dataset.i=it.id;
+  let t=0;it.tmr=setInterval(()=>{t+=50;it.p=Math.min(t/DUR*100,100);it.si=Math.min(Math.floor(t/(DUR/7)),6);
+    if(!it.bg){$('ldb').style.width=it.p.toFixed(1)+'%';$('ldp').textContent=STEPS[it.si].l+'... '+Math.floor(it.p)+'%';$('ldt').textContent=STEPS[it.si].l+'...'}
+    uQI(it);if(t>=DUR){clearInterval(it.tmr);it.s='done';it.p=100;uBdg();uQI(it);toast('SUCCESSFULLY GENERATED');if(!it.bg){setTimeout(()=>{cl('ldScr');pvIt=it;op('pvScr')},400)}}
+  },50);
+}
+function goBg(){const it=Q.find(q=>q.id==+$('ldScr').dataset.i);if(it)it.bg=true;cl('ldScr');uBdg()}
+
+// ═══ QUEUE ═══
+function uBdg(){const ac=Q.filter(q=>q.s==='gen').length;$('qcn').textContent=Q.length;ac>0?$('qb').classList.add('act'):$('qb').classList.remove('act')}
+function rQ(){$('qc2').textContent=Q.length+'/5';const w=$('qlw');
+  if(!Q.length){w.innerHTML='<div class="qe">Queue is empty, go create an AIGC task.</div>';w.style.cssText='flex:1;display:flex';return}
+  w.style.cssText='flex:1;overflow-y:auto';let h='<div class="ql">';
+  Q.forEach(it=>{h+='<div class="qi" id="qi'+it.id+'"><div class="qii">📝</div><div class="qin"><div class="qit">CHARACTER <span style="font-size:10px;color:#555">Details</span></div><div class="qid">'+it.nm+(it.bg?' (后台)':'')+'</div><div class="qida">'+it.ts+'</div></div>';
+    if(it.s==='gen'){h+='<div class="qip"><div class="qipl" id="qpl'+it.id+'">'+STEPS[it.si].l+'... '+Math.floor(it.p)+'%</div><div class="qipb"><div class="qipf" id="qpb'+it.id+'" style="width:'+it.p+'%"></div></div></div>'}
+    else{h+='<div class="qia"><button class="qdel" onclick="dQ('+it.id+')">DELETE</button><button class="qprev" onclick="pQ('+it.id+')">PREVIEW</button></div>'}
+    h+='</div>'});h+='</div>';w.innerHTML=h}
+function uQI(it){const pb=document.getElementById('qpb'+it.id);const pl=document.getElementById('qpl'+it.id);if(pb)pb.style.width=it.p+'%';if(pl&&it.s==='gen')pl.textContent=STEPS[it.si].l+'... '+Math.floor(it.p)+'%';if(it.s==='done')rQ()}
+function dQ(id){Q=Q.filter(q=>q.id!==id);uBdg();rQ();toast('Deleted')}
+function pQ(id){cl('qScr');pvIt=Q.find(q=>q.id===id);if(pvIt)op('pvScr')}
+
+// ═══ PREVIEW ═══
+let pvIt=null;
+function openSM(){$('sn').value='';op('smo')}
+function doSave(){const nm=$('sn').value.trim();if(!nm){toast('请输入名称');return}cl('smo');
+  if(pvIt){Q=Q.filter(q=>q.id!==pvIt.id);uBdg()}
+  creations.push({name:nm,type:'CHARACTER',published:false,time:new Date().toLocaleString(),auth:false,share:false});
+  toast('Add To Library');cl('pvScr');openLib()}
+
+// ═══ LIBRARY ═══
+const CATS=['ALL','MODEL','SCENE','2D','MOTION','CHARACTER'];
+function openLib(){op('libScr');libMode='creation';rLib()}
+function rLib(){
+  $('ltt').textContent=libMode==='creation'?'MY CREATION':'MY PURCHASE';
+  $('lsw').innerHTML=libMode==='creation'?'🔄 MY PURCHASE <span class="arr">›</span>':'🔄 MY CREATION <span class="arr">‹</span>';
+  // Cats
+  const cc=$('lcats');cc.innerHTML='';CATS.forEach(c=>{cc.innerHTML+='<div class="lci'+(c==='CHARACTER'?' act':'')+'" onclick="selCat(this)"><span class="li">'+(c==='ALL'?'🔲':c==='MODEL'?'📦':c==='SCENE'?'⛰️':c==='2D'?'🖼️':c==='MOTION'?'💫':'🧑')+'</span>'+c+'</div>'});
+  // Limit
+  published=creations.filter(c=>c.published).length;
+  $('llim').innerHTML=libMode==='creation'?'CREATION LIMIT: <b>'+creations.length+'</b>/100<br>PUBLISHED LIMIT: <b>'+published+'</b>/30':'PURCHASE LIMIT: <b>'+purchases.length+'</b>/200';
+  // Grid
+  const g=$('lgr');g.innerHTML='';
+  if(libMode==='creation'){
+    if(!creations.length){g.innerHTML='<div style="padding:40px;color:var(--t3);font-size:13px;grid-column:1/-1">暂无角色，去生成一个吧！</div>';return}
+    creations.forEach((c,i)=>{g.innerHTML+='<div class="lcd" onclick="openCreationDtl('+i+')"><div class="lt"><svg viewBox="0 0 80 140"><circle cx="40" cy="18" r="10" fill="#e8c88a"/><rect x="28" y="30" width="24" height="60" rx="4" fill="#4a7a2e"/></svg></div><div class="ln">'+c.name+'</div></div>'});
+  } else {
+    if(!purchases.length){g.innerHTML='<div style="padding:40px;color:var(--t3);font-size:13px;grid-column:1/-1">暂无购买的角色</div>';return}
+    purchases.forEach((c,i)=>{g.innerHTML+='<div class="lcd" onclick="openPurchaseDtl('+i+')"><div class="lt"><svg viewBox="0 0 80 140"><circle cx="40" cy="18" r="10" fill="#e8c88a"/><rect x="28" y="30" width="24" height="60" rx="4" fill="#4a7a2e"/></svg><div class="lstore">🏪</div><div class="likes">👍 '+c.likes+'</div></div><div class="ln">'+c.name+'</div></div>'});
+  }
+}
+function togLib(){libMode=libMode==='creation'?'purchase':'creation';rLib()}
+function selCat(e){document.querySelectorAll('.lci').forEach(c=>c.classList.remove('act'));e.classList.add('act')}
+
+// ═══ CREATION DETAIL ═══
+function openCreationDtl(i){
+  const c=creations[i];const p=$('dtlP');
+  let h='<div class="dtl-inner"><div class="dtl-hdr"><h2>'+c.name+'</h2><button class="dtlx" onclick="cl(\'dtlP\')">&times;</button></div>';
+  h+='<div class="dtl-body"><div class="dtl-thumb"><svg viewBox="0 0 80 140"><circle cx="40" cy="18" r="10" fill="#e8c88a"/><rect x="28" y="30" width="24" height="60" rx="4" fill="#4a7a2e"/></svg></div><div class="dtl-info">';
+  if(!c.published){
+    h+='<div class="dtl-row"><span class="dlbl">CREATION NAME</span><span class="dval"><input type="text" value="'+c.name+'" id="dtlNm"/></span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">USAGE</span><span class="dval">'+Math.floor(Math.random()*10)+'</span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">CREATION TIME</span><span class="dval">'+c.time+'</span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">TYPE</span><span class="dval">CHARACTER-Original:Store.Basic.CategoryName.character</span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">GENERATING PROMPT</span><span class="dval">📋</span></div>';
+    h+='</div></div><div class="dtl-ftr"><button class="dfbtn dfdel" onclick="delCreation('+i+')">🗑️ DELETE</button><button class="dfbtn dfpub" onclick="pubCreation('+i+')">PUBLISH</button></div></div>';
+  } else {
+    h+='<div class="dtl-row"><span class="dlbl">CREATION NAME</span><span class="dval"><input type="text" value="'+c.name+'" id="dtlNm"/></span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">ITEM AUTHORIZATION</span><span class="dval"><div class="tog"><span class="'+(c.auth?'':'on')+'" onclick="togAuth('+i+',false)">OFF</span><span class="'+(c.auth?'on':'')+'" onclick="togAuth('+i+',true)">ON</span></div></span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">PRIVATE SHARING</span><span class="dval"><div class="tog"><span class="'+(c.share?'':'on')+'" onclick="togShare('+i+',false)">OFF</span><span class="'+(c.share?'on':'')+'" onclick="togShare('+i+',true)">ON</span></div></span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">CREATOR NAME</span><span class="dval">You</span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">USAGE</span><span class="dval">'+Math.floor(Math.random()*10)+'</span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">CREATION TIME</span><span class="dval">'+c.time+'</span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">TYPE</span><span class="dval">CHARACTER-Original:Store.Basic.CategoryName.character</span></div>';
+    h+='<div class="dtl-row"><span class="dlbl">GENERATING PROMPT</span><span class="dval">📋</span></div>';
+    h+='</div></div><div class="dtl-ftr"><button class="dfbtn dfrem" onclick="unpubCreation('+i+')">REMOVE</button></div></div>';
+  }
+  p.innerHTML=h;op('dtlP');
+}
+function delCreation(i){creations.splice(i,1);cl('dtlP');rLib();toast('Deleted')}
+function pubCreation(i){
+  const nm=document.getElementById('dtlNm');if(nm)creations[i].name=nm.value.trim()||creations[i].name;
+  creations[i].published=true;cl('dtlP');openCreationDtl(i);rLib();toast('Published!')}
+function unpubCreation(i){creations[i].published=false;cl('dtlP');openCreationDtl(i);rLib();toast('Removed from Store')}
+function togAuth(i,v){creations[i].auth=v;cl('dtlP');openCreationDtl(i)}
+function togShare(i,v){creations[i].share=v;cl('dtlP');openCreationDtl(i)}
+
+// ═══ PURCHASE DETAIL ═══
+function openPurchaseDtl(i){
+  const c=purchases[i];const p=$('dtlP');const pct=c.likes>0?'100':'0';
+  let h='<div class="dtl-inner"><div class="dtl-hdr"><h2>'+c.name+'</h2><button class="dtlx" onclick="cl(\'dtlP\')">&times;</button></div>';
+  h+='<div class="dtl-body"><div class="dtl-thumb"><svg viewBox="0 0 80 140"><circle cx="40" cy="18" r="10" fill="#e8c88a"/><rect x="28" y="30" width="24" height="60" rx="4" fill="#4a7a2e"/></svg>';
+  h+='<div class="lkbar"><span class="lkn">👍 '+c.likes+'</span><span class="lkp">'+pct+'% OF USERS LIKE IT</span></div>';
+  h+='<div class="lkbtns"><button onclick="likePur('+i+')">👍 LIKE</button><button onclick="toast(\'Disliked\')">👎 DISLIKE</button></div></div>';
+  h+='<div class="dtl-info">';
+  h+='<div class="dtl-row"><span class="dlbl">ITEM AUTHORIZATION</span><span class="dval">EDIT DISABLED</span></div>';
+  h+='<div class="dtl-row"><span class="dlbl">CREATOR NAME</span><span class="dval" style="color:var(--blue)">'+c.creator+'</span></div>';
+  h+='<div class="dtl-row"><span class="dlbl">USAGE</span><span class="dval">'+Math.floor(Math.random()*1e6).toLocaleString()+'</span></div>';
+  h+='<div class="dtl-row"><span class="dlbl">CREATION TIME</span><span class="dval">'+c.time+'</span></div>';
+  h+='<div class="dtl-row"><span class="dlbl">CREATION ID</span><span class="dval" style="font-size:10px">'+c.cid+' 📋</span></div>';
+  h+='<div class="dtl-row"><span class="dlbl">SHARE QRCODE</span><span class="dval"><button style="background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:14px;color:var(--t2)" onclick="op(\'qrmo\')">📱</button></span></div>';
+  h+='<div class="dtl-row"><span class="dlbl">TYPE</span><span class="dval">CHARACTER-Original:Store.Basic.CategoryName.character</span></div>';
+  h+='<div class="dtl-row"><span class="dlbl">VERSION</span><span class="dval">'+c.ver+'</span></div>';
+  h+='<div class="dtl-row"><span class="dlbl">GENERATING PROMPT</span><span class="dval">📋</span></div>';
+  h+='</div></div><div class="dtl-ftr"><button class="dfbtn dfdel" onclick="toast(\'Modify Version\')">MODIFY VERSION</button><button class="dfbtn dfrem" onclick="remPur('+i+')">REMOVE LIBRARY</button></div></div>';
+  p.innerHTML=h;op('dtlP');
+}
+function likePur(i){purchases[i].likes++;cl('dtlP');openPurchaseDtl(i);toast('Liked!')}
+function remPur(i){purchases.splice(i,1);cl('dtlP');rLib();toast('Removed from Library')}
+
+// Keyboard
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.mo.show').forEach(m=>m.classList.remove('show'));document.querySelectorAll('.dtl.show').forEach(m=>m.classList.remove('show'));['qrmo','pvScr','qScr','libScr','ldScr'].forEach(id=>{if($(id).classList.contains('show'))cl(id)})}});
+ck();
+</script>
+</body>
+</html>
