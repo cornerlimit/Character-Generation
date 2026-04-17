@@ -55,10 +55,31 @@ body{font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-s
 /* Input */
 .sec-label{font-size:14px;color:var(--t2);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .pbox{position:relative}
-.pbox textarea{width:100%;min-height:180px;resize:vertical;background:var(--bg3);border:1px solid var(--bd);border-radius:12px;padding:20px 48px 20px 20px;color:var(--t1);font-size:15px;line-height:1.7;font-family:inherit;outline:none;transition:.2s}
+.pbox textarea{width:100%;min-height:180px;resize:vertical;background:var(--bg3);border:1px solid var(--bd);border-radius:12px 12px 0 0;padding:20px 48px 16px 20px;color:var(--t1);font-size:15px;line-height:1.7;font-family:inherit;outline:none;transition:.2s}
 .pbox textarea:focus{border-color:var(--blue)}
 .pbox textarea::placeholder{color:#555c68}
-.pbox .pedit{position:absolute;right:16px;bottom:16px;width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.pbox .pedit{position:absolute;right:16px;bottom:46px;width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+/* Prompt bottom bar: Direction + char count */
+.pbox-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:rgba(0,0,0,.15);border-radius:0 0 12px 12px;margin-top:-2px}
+.dir-btn{background:none;border:1px solid var(--bd);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;transition:.2s;display:flex;align-items:center;gap:4px}
+.dir-btn:hover{background:var(--bg4);color:var(--t1)}
+.char-cnt{font-size:11px;color:var(--t3);font-weight:600;font-variant-numeric:tabular-nums}
+.char-cnt.warn{color:var(--err)}
+
+/* Direction modal */
+#dirMo .mc{max-width:520px}
+.dir-struct{display:flex;align-items:center;gap:0;margin:16px 0}
+.dir-col{flex:1;text-align:center}
+.dir-col .dc-label{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px}
+.dir-col .dc-label span{font-size:10px;color:var(--t3);font-weight:400}
+.dir-col .dc-box{background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:8px 12px;font-size:13px;color:var(--t1);font-weight:500}
+.dir-plus{font-size:16px;color:var(--t3);font-weight:700;padding:0 8px;flex-shrink:0}
+.dir-example{margin-top:20px}
+.dir-example .de-label{font-size:13px;color:var(--t2);font-weight:600;margin-bottom:10px}
+.dir-example .de-img{width:100%;border-radius:8px;background:var(--bg3);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;padding:24px;min-height:200px}
+.dir-example .de-char{width:100px;height:200px;background:linear-gradient(180deg,#c0c0c0,#888);border-radius:10px 10px 6px 6px;position:relative}
+.dir-example .de-char::before{content:'';position:absolute;top:-28px;left:50%;transform:translateX(-50%);width:30px;height:30px;border-radius:50%;background:#ccc}
+.dir-example .de-char::after{content:'';position:absolute;top:30px;left:-12px;width:124px;height:14px;border-radius:7px;background:#aaa}
 .ubox{height:200px;border:2px dashed var(--bd);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:.25s;background:rgba(43,47,56,.4);position:relative;overflow:hidden}
 .ubox:hover{border-color:var(--blue);background:rgba(91,156,245,.06)}
 .ubox.has{border-style:solid;border-color:var(--ok)}
@@ -215,6 +236,9 @@ body{font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-s
 <div class="mo" id="htxt"><div class="mc"><button class="mx" onclick="cl('htxt')">&times;</button><h3>🎮 角色生成说明</h3><div class="ms">📖 功能说明</div><ol><li>本功能用于生成游戏中可用的玩家模型</li><li>输入角色描述，我们会生成对应模型</li><li>生成中可继续游玩，无需停留</li><li>生成后可用于角色UGC编辑</li></ol><div class="ms">【生成限制】</div><ul><li>仅支持四肢健全的标准人形模型</li><li>非人型将中止生成</li><li>队列上限5个</li></ul></div></div>
 <div class="mo" id="himg"><div class="mc"><button class="mx" onclick="cl('himg')">&times;</button><h3>🎮 角色生成说明</h3><div class="ms">📖 功能说明</div><ol><li>本功能用于生成游戏中可用的玩家模型</li><li>上传角色图像，我们会识别并转化为游戏模型</li><li>生成中可继续游玩，无需停留</li><li>生成后可用于角色UGC编辑</li></ol><div class="ms">【生成限制】</div><ul><li>目前仅支持生成四肢健全的标准人形角色</li><li>图片背景简单（尽量纯色）</li><li>图片不包含文字</li><li>单主体人物，正面，全身</li><li>避免主体在图片中过小</li></ul></div></div>
 
+<!-- Direction modal (提示词输入指南) -->
+<div class="mo" id="dirMo"><div class="mc"><button class="mx" onclick="cl('dirMo')">&times;</button><h3>提示词指南</h3><p style="margin-bottom:14px">试试以下结构描述：</p><div class="dir-struct"><div class="dir-col"><div class="dc-label">单主体</div><div class="dc-box">骑士</div></div><div class="dir-plus">+</div><div class="dir-col"><div class="dc-label">特征 <span>（可选）</span></div><div class="dc-box">穿戴中世纪铠甲</div></div><div class="dir-plus">+</div><div class="dir-col"><div class="dc-label">风格 <span>（可选）</span></div><div class="dc-box">卡通</div></div></div><div class="dir-example"><div class="de-label">效果示例：</div><div class="de-img"><div class="de-char"></div></div></div></div></div>
+
 <!-- Save modal -->
 <div class="mo" id="smo"><div class="mc" style="text-align:center"><button class="mx" onclick="cl('smo')">&times;</button><h3 style="font-size:24px;letter-spacing:3px">SAVE</h3><input type="text" id="sn" placeholder="ENTER CHARACTER NAME" style="text-align:center"/><button class="mbtn" onclick="doSave()">CONFIRM</button></div></div>
 
@@ -256,7 +280,7 @@ body{font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-s
         <div style="flex:1;overflow-y:auto;min-height:0">
           <div id="vt" style="display:flex;flex-direction:column;gap:10px">
             <div class="sec-label">ENTER A PROMPT <span class="hi" onclick="op('htxt')">?</span></div>
-            <div class="pbox"><textarea id="pt" placeholder="请输入想要生成的内容。建议以单主体为主。&#10;&#10;例如：一个战士英雄，手持战锤，蒸汽朋克风。" oninput="ck()"></textarea><button class="pedit">✏️</button></div>
+            <div class="pbox"><textarea id="pt" placeholder="请输入想要生成的内容。建议以单体为主，例如：一个战士英雄，身穿铠甲，蒸汽朋克风格。" oninput="ck();uCnt()" maxlength="200"></textarea><button class="pedit">✏️</button><div class="pbox-bar"><button class="dir-btn" onclick="op('dirMo')">📖 Direction</button><span class="char-cnt" id="charCnt">0/200</span></div></div>
           </div>
           <div id="vi" style="display:none;flex-direction:column;gap:10px">
             <div class="sec-label">UPLOAD A IMAGE <span class="hi" onclick="op('himg')">?</span></div>
@@ -296,6 +320,7 @@ function swMod(m,b){curMod=m;document.querySelectorAll('.side .si').forEach(s=>s
 // ═══ TABS ═══
 function swTab(e){document.querySelectorAll('.tb').forEach(t=>t.classList.remove('act'));e.classList.add('act');tab=e.dataset.t;$('vt').style.display=tab==='text'?'flex':'none';$('vi').style.display=tab==='image'?'flex':'none';ck()}
 function ck(){const b=$('gb');let ok=tab==='text'?$('pt').value.trim().length>0:$('ub').classList.contains('has');ok?b.classList.add('ok'):b.classList.remove('ok')}
+function uCnt(){const v=$('pt').value;const len=v.length;const el=$('charCnt');el.textContent=len+'/200';len>=180?el.classList.add('warn'):el.classList.remove('warn')}
 
 // ═══ UPLOAD ═══
 function doUp(e){e.stopPropagation();const f=e.target.files[0];if(!f)return;if(f.size>10e6){toast('文件超过10MB');return}const r=new FileReader();r.onload=v=>{$('uim').src=v.target.result;$('uim').style.display='block';$('ub').classList.add('has');$('uii').style.display='none';$('utt').style.display='none';$('uhh').style.display='none';ck()};r.readAsDataURL(f)}
